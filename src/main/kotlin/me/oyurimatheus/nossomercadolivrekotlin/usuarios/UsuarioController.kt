@@ -1,11 +1,10 @@
 package me.oyurimatheus.nossomercadolivrekotlin.usuarios
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.validation.Errors
+import org.springframework.validation.Validator
+import org.springframework.web.bind.WebDataBinder
+import org.springframework.web.bind.annotation.*
 import java.net.URI
 import javax.validation.Valid
 import javax.validation.constraints.Email
@@ -27,6 +26,28 @@ class UsuarioController(val usuarioRepository: UsuarioRepository) {
         val location: URI = URI.create("/api/users/" + usuario.id)
         return ResponseEntity.created(location).build()
     }
+
+    @InitBinder(value = [ "novoUsuarioRequest" ])
+    fun initBinder(binder: WebDataBinder) {
+        binder.addValidators(LoginUsuarioValidator(usuarioRepository))
+    }
+
+}
+
+class LoginUsuarioValidator(val usuarioRepository: UsuarioRepository) : Validator {
+
+    override fun validate(obj: Any, errors: Errors) {
+        val (login, _) = obj as NovoUsuarioRequest
+
+        if (usuarioRepository.existsByEmail(login)) {
+            errors.rejectValue("login", "usuario.login.jaCadastrado", "esse email ja esta cadastrado")
+        }
+    }
+
+    override fun supports(klass: Class<*>): Boolean {
+        return NovoUsuarioRequest::class.java.isAssignableFrom(klass)
+    }
+
 }
 
 

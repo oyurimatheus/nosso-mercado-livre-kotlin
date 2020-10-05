@@ -39,4 +39,6 @@ class Senha private constructor(senhaEmTextoPuro: String) {
 interface UsuarioRepository : Repository<Usuario, Long> {
 
     fun save(usuario: Usuario) : Usuario
+
+    fun existsByEmail(email: String) : Boolean
 }
